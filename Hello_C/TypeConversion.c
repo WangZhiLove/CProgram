@@ -1,0 +1,16 @@
+#include "stdio.h"
+
+int main(void) {
+    int x = 12.99;
+    printf("%d\n", x);
+    float y = 12 * 2;
+    printf("%f\n", y);
+    char z = 10;
+    int i = z + y;
+    printf("%d\n", i);
+    int a = 321;
+    // 二进制截值
+    char ch = a;
+    printf("%d\n", ch);
+    return 0;
+}

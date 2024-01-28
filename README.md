@@ -416,5 +416,298 @@ printf("%s\d", "floor");
 
 ### 类型说明
 
+C 语言支持的基础类型相对较少，每种类型都有自己的边界。
 
+#### 整数类型
+
+C 语言使用关键字 signed 和 unsigned 表示类型带有正负号，相同字节的不同关键字，表示的范围不相同。
+
+- 16 位：signed 是 -2^(16 - 1)~2^(16-1)-1；unsigned 是 0～2^16 - 1
+- 32 位：signed 是 -2^(32 - 1)~2^(32-1)-1；unsigned 是 0～2^32 - 1
+- 64 位：signed 是 -2^(64 - 1)~2^(64-1)-1；unsigned 是 0～2^64 - 1
+
+**整数的子类型**：
+
+- short int （简写为short ）：占⽤空间不多于int ，⼀般占⽤2个字节（整数范围为-32768～32767)
+- long int （简写为long ）：占⽤空间不少于int ，⾄少为4个字节
+- long long int （简写为long long ）：占⽤空间多于long ，⾄少为8个字节
+
+为什么需要子类型呢？一般在静态编程语言中，类型声明之后分配的内存大小是固定的，不会根据实际的值而发生改变，有的时候在知道不会占据更大的内存的时候，可以用小整型，如果内存不够了，就用大整型。
+
+对于上面的极限值来说，C 语言是有静态声明的，是在 limit.h 的头中，一般有下面几种：
+
+- SCHAR_MIN ， SCHAR_MAX ：signed char 的最⼩值和最⼤值
+- SHRT_MIN ， SHRT_MAX ：short 的最⼩值和最⼤值
+- INT_MIN ， INT_MAX ：int 的最⼩值和最⼤值
+- LONG_MIN ， LONG_MAX ：long 的最⼩值和最⼤值
+- LLONG_MIN ， LLONG_MAX ：long long 的最⼩值和最⼤值
+- UCHAR_MAX ：unsigned char 的最⼤值
+- USHRT_MAX ：unsigned short 的最⼤值
+- UINT_MAX ：unsigned int 的最⼤值。
+- ULONG_MAX ：unsigned long 的最⼤值
+- ULLONG_MAX ：unsigned long long 的最⼤值。
+
+代码输出掩饰如下：
+
+````c
+#include "stdio.h"
+#include "limits.h"
+
+int main(void) {
+    // char
+    printf("signed char min: %d\n", SCHAR_MIN);
+    printf("signed char max: %d\n", SCHAR_MAX);
+    printf("unsigned char max: %d\n", UCHAR_MAX);
+    // short
+    printf("signed short min: %d\n", SHRT_MIN);
+    printf("signed short max: %d\n", SHRT_MAX);
+    printf("unsigned short max: %d\n", USHRT_MAX);
+    // int
+    printf("signed int min: %d\n", INT_MIN);
+    printf("signed int max: %d\n", INT_MAX);
+    printf("unsigned int max: %u\n", UINT_MAX);
+    // long
+    printf("signed long min: %ld\n", LONG_MIN);
+    printf("signed long max: %ld\n", LONG_MAX);
+    printf("unsigned long max: %lu\n", ULONG_MAX);
+    // long long
+    printf("signed long long min: %lld\n", LLONG_MIN);
+    printf("signed long long max: %lld\n", LLONG_MAX);
+    printf("unsigned long long max: %llu\n", ULLONG_MAX);
+    return 0;
+}
+// 输出如下
+signed char min: -128
+signed char max: 127
+unsigned char max: 255
+signed short min: -32768
+signed short max: 32767
+unsigned short max: 65535
+signed int min: -2147483648
+signed int max: 2147483647
+unsigned int max: 4294967295
+signed long min: -9223372036854775808
+signed long max: 9223372036854775807
+unsigned long max: 18446744073709551615
+signed long long min: -9223372036854775808
+signed long long max: 9223372036854775807
+unsigned long long max: 18446744073709551615
+````
+
+**整数的进制**
+
+C 语言的整数默认都是十进制，如果要表示 8 进制和 16 进制，就需要特殊的表示方法。
+
+八进制一般用 0 表示前缀；十六 进制一般用 0X 作为前缀；二进制一般用0b 作为前缀。如果想用 printf 输出对应的进制整数，需要用不同的占位符
+
+- %d：⼗进制整数
+- %o ：⼋进制整数
+- %x ：⼗六进制整数
+- %#o ：显示前缀0 的⼋进制整数
+- %#x ：显示前缀0x 的⼗六进制整数
+- %#X ：显示前缀0X 的⼗六进制整数
+
+````c
+#include "stdio.h"
+
+int main(void) {
+    // 八进制
+    int a = 012;
+    printf("八进制 012 输出十进制为:%d\n", a);
+    printf("八进制 012 输出八进制为:%o\n", a);
+    printf("八进制 012 输出八进制为:%#o\n", a);
+    // 16进制
+    int b = 0X10;
+    printf("十六进制 0X10 输出十进制为:%d\n", b);
+    printf("十六进制 0X10 输出十六进制为:%x\n", b);
+    printf("十六进制 0X10 输出十六进制为:%#x\n", b);
+    // 二进制
+    int c = 0b10;
+    printf("二进制 0b10 输出十进制为:%d\n", c);
+    return 0;
+}
+// 输出如下
+八进制 012 输出十进制为:10
+八进制 012 输出八进制为:12
+八进制 012 输出八进制为:012
+十六进制 0X10 输出十进制为:16
+十六进制 0X10 输出十六进制为:10
+十六进制 0X10 输出十六进制为:0x10
+二进制 0b10 输出十进制为:2
+````
+
+#### 浮点数类型
+
+浮点数的声明用的是 float，float 类型占用 4 个字节，前八位存放指数的值和符号，后面 24 位存放小数的值和符号，C 语言还提供了 double 和 long double 来表示更准确的精度和数值范围，double 占用 8 个字节，long double 占据 16 个字节。由于精度的限制，浮点数只是一个近似值，所以计算也是不准确的，比如说
+
+````c
+// 下面 if 中的语句是会输出的
+if (0.1 + 0.2 != 0.3) {
+    printf("0.1 + 0.2 != 0.3");
+}
+````
+
+#### 布尔类型
+
+C 语⾔原来并没有为布尔值单独设置⼀个类型，⽽是使⽤整数0表示伪，所有⾮零值表示。
+
+在头文件 `stdbool.h` 中，true 代表 1，false 代表中，使用如下：
+
+````c
+#include "stdbool.h"
+
+int main(void) {
+    bool flag = true;
+    bool flag1 = false;
+    return 0;
+}
+````
+
+#### 溢出
+
+溢出代表着存放的值超出了类型的范围，单吃编译器对待溢出不会报错，而是正常执行，只是输出的结果往往是意想不到的结果。例如下面代码：
+
+````c
+#include "stdio.h"
+#include "stdbool.h"
+#include "limits.h"
+
+int main(void) {
+    unsigned char x = 255;
+    x = x + 1;
+    printf("%d\n", x); // 0
+    unsigned int ui = UINT_MAX; // 4,294,967,295
+    ui++;
+    printf("ui = %u\n", ui); // 0
+    ui--;
+    printf("ui = %u\n", ui); // 4,294,967,295
+    return 0;
+}
+
+// 输出如下
+0
+ui = 0
+ui = 4294967295
+````
+
+这个就是溢出的一个表现，另外如下代码会出现死循环
+
+````c
+// 因为 i 是无符号，所以不可能为负值，当 i = 0 的时候 -1 得到的是 2^32 - 1
+for (unsigned int i = n; i >= 0; --i) // 错误
+````
+
+所以在进行比较的时候能使用`limits.h`就尽量使用。
+
+#### sizeof 运算符
+
+sizeof是 C 语⾔提供的⼀个运算符，返回某种数据类型或某个值占⽤的字节数量。它的参数可以是数据类
+
+型的关键字，也可以是变量名或某个具体的值。
+
+````c
+printf("%zd\n", sizeof(int));
+// 参数为变量
+int i;
+printf("%zd\n", sizeof(i));
+// 参数为数值
+printf("%zd\n", sizeof(3.14));
+
+// 输出结果为
+4
+4
+8
+````
+
+#### 类型自动转换
+
+**赋值运算**
+
+浮点数赋予整数变量时，C 语⾔直接丢弃⼩数部分，⽽不是四舍五⼊。
+
+整数赋值给浮点数变量时，会⾃动转为浮点数。
+
+字节宽度较⼩的整数类型，赋值给字节宽度较⼤的整数变量时，会发⽣类型提升，即窄类型⾃动转为宽类
+
+型。
+
+字节宽度较⼤的类型，赋值给字节宽度较⼩的变量时，会发⽣类型降级，⾃动转为后者的类型。这时可能会
+
+发⽣截值（truncation），系统会⾃动截去多余的⼆进制位，导致难以预料的结果。
+
+````c
+#include "stdio.h"
+
+int main(void) {
+    int x = 12.99;
+    printf("%d\n", x);
+    float y = 12 * 2;
+    printf("%f\n", y);
+    char z = 10;
+    int i = z + y;
+    printf("%d\n", i);
+    int a = 321;
+    // 二进制截值
+    char ch = a;
+    printf("%d\n", ch);
+    return 0;
+}
+
+// 输出
+12
+24.000000
+34
+65
+````
+
+有自动转换就有显示转换，我们可以将一个值或者变量强制转换为想要的类型，例如 `(unsigned char) ch`将 ch 变为无符号的字符类型。
+
+之前说过在不同计算机上，可能同一种类型所占用的字节是不相同的，为了控制精确的字节宽度，C 语言再头文件`stdint.h`创造了新的类型别名。
+
+精确宽度类型：
+
+- int8_t ：8位有符号整数
+- int16_t ：16位有符号整数
+- int32_t：32位有符号整数
+- int64_t：64位有符号整数
+- uint8_t：8位⽆符号整数
+- uint16_t：16位⽆符号整数
+- uint32_t：32位⽆符号整数
+- uint64_t ：64位⽆符号整数
+
+最小宽度类型：
+
+- int_least8_t
+- int_least16_t
+- int_least32_t
+- int_least64_t
+- uint_least8_t
+- uint_least16_t
+- uint_least32_t
+- uint_least64_t
+
+最快的最⼩宽度类型：
+
+- int_fast8_t
+- int_fast16_t
+- int_fast32_t
+- int_fast64_t
+- uint_fast8_t
+- uint_fast16_t
+- uint_fast32_t
+- uint_fast64_t
+
+可以保存指针的整数类型：
+
+- intptr_t ：可以存储指针（内存地址）的有符号整数类型
+- uintptr_t：可以存储指针的⽆符号整数类型
+
+最⼤宽度整数类型，⽤于存放最⼤的整数：
+
+- intmax_t：可以存储任何有效的有符号整数的类型
+- uintmax_t：可以存放任何有效的⽆符号整数的类型
+
+不同的场景可以使用不同的类型别名。
+
+### 指针
 

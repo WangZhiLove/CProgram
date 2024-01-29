@@ -1,5 +1,7 @@
 #include "stdio.h"
 
+void increment(int *pInt);
+
 int main(void) {
     int x = 12.99;
     printf("%d\n", x);
@@ -12,5 +14,14 @@ int main(void) {
     // 二进制截值
     char ch = a;
     printf("%d\n", ch);
+    int q = 1;
+    increment(&q);
+    printf("%d\n", q);
     return 0;
 }
+
+void increment(int* pInt) {
+    *pInt = *pInt + 1;
+}
+
+

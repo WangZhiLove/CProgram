@@ -776,7 +776,7 @@ int main(void) {
     j = j + 1;
     // 输入 0xF
     printf("%p\n", j);
-    return 1;
+    return 0;
 }
 ````
 
@@ -812,7 +812,7 @@ int main(void) {
     printf("%ld\n", j1 - j2);
     // 输出 -2
     printf("%ld\n", j2 - j1);
-    return 1;
+    return 0;
 }
 ````
 
@@ -838,11 +838,470 @@ int main(void) {
     printf("%d\n", i1 < j3);
     // 输出 1
     printf("%d\n", i1 == j3);
-    return 1;
+    return 0;
 }
 ````
 
 指针小结，指针其实就是内存地址，操作内存地址需要格外的小心，`*`可以取指针的值，`&`可以取变量的内存地址，指针的运算往往与指针的类型相关，指针和指针之间只允许减法。
 
 ### 函数
+
+函数在很多地方也被称为方法，就是一段可以接受同种类型的不同参数，可重复执行的代码，函数的要素有下面几点：
+
+1. 函数需要有返回值类型，比如我们的 main 就是入口函数，返回类型是 int，无返回值可以使用 void
+2. 参数，函数需要有参数，main 函数可以接受参数，我们之前的例子都是 void，之前的 increment 函数的参数就是整数指针
+3. 函数体，大括号内部的内容都是函数体
+4. 返回值，因为函数有返回值类型，返回值需要和返回值类型匹配
+5. 方法名，方法名很重要，要做到见名知意
+
+函数的注意事项：
+
+1. C 语言中规定，函数的声明必须在源码文件的顶层，不能声明在其它函数的内部，例如
+
+````c
+#include "stdio.h"
+// 函数声明
+void increment(int *pInt);
+
+int main(void) {
+    int q = 1;
+    increment(&q);
+    printf("%d\n", q);
+    return 0;
+}
+
+void increment(int* pInt) {
+    *pInt = *pInt + 1;
+}
+````
+
+2. 函数的调用就是直接使用方法名+括号和参数就可以，参数不可以多传，也不可以少传，类型也必须和声明的参数保持一致，否则会报错
+
+
+
+#### main()
+
+C 语言规定，main() 是程序的入口函数，也就是所有的程序都有一个`main()`函数，执行从 main 开始，其它程序都是通过 main 引入的。如下：
+
+````c
+int main(void) {
+  printf("Hello World\n");
+  return 0;
+}
+````
+
+C 语言规定，返回 0 表示函数执行成功，返回其它非 0 整数，表示运行失败。
+
+#### 参数的传递
+
+##### 值传递
+
+如果函数的参数是一个变量，那么调用的时候，传入的是这个变量的值的拷贝，而不是变量本身，这就是值传递。
+
+````c
+#include "stdio.h"
+
+int valueTransfer(int a);
+
+int main(void) {
+    int a = 10;
+    valueTransfer(a);
+    printf("值传递不改变原变量，传递的是变量值的拷贝：%d\n", a);
+    a = valueTransfer(a);
+    printf("值传递有返回值的变化：%d\n", a);
+    return 0;
+}
+
+
+int valueTransfer(int a) {
+    a ++;
+    return a;
+}
+
+// 输出结果为
+值传递不改变原变量，传递的是变量值的拷贝：10
+值传递有返回值的变化：11
+````
+
+既然如此，我想传入变量本身，应该如何做呢？借用指针，指针就是一块内存地址，传入地址，那修改的就是地址的内容，如下
+
+````c
+#include "stdio.h"
+
+void swap(int* x, int* y);
+
+int main(void) {
+    int x = 1, y = 2;
+    swap(&x, &y);
+    printf("交换后 x 的值为 %d, y 的值为 %d \n", x, y);
+    return 0;
+}
+
+void swap(int* x, int* y) {
+    int temp = *x;
+    *x = *y;
+    *y = temp;
+}
+
+// 输出的结果为
+交换后 x 的值为 2, y 的值为 1 
+````
+
+要注意的是不要返回内部变量的指针，因为内部变量在退出方法的时候就销毁了，所以地址中的值也就为空了，没有意义。
+
+#### 函数指针
+
+函数本身就是一段内存里面的代码，C 语言允许通过指针获取函数，例如：
+
+````c
+#include "stdio.h"
+#include "stdbool.h"
+
+void print(int a);
+
+int main(void) {
+    // 获取函数的地址作为变量，printNum 是一个函数指针
+    void (*printNum)(int) = &print;
+    // 使用函数指针调用函数
+    printNum(10);
+    return 0;
+}
+
+void print(int a) {
+    printf("%d\n", a);
+}
+
+// 输出
+10
+````
+
+C 语言特殊的地方就在于函数名本身就指向函数的地址，所以下面代码会进行输出
+
+````c
+#include "stdio.h"
+#include "stdbool.h"
+
+void print(int a);
+
+int main(void) {
+    // 函数名本身指向函数代码的指针
+    if (&print == print) {
+        printf("函数名本身指向函数代码的指针\n");
+    }
+    void (*printNum1)(int) = print;
+    printNum1(11);
+    printf("printNum1 == printNum %d\n", printNum1 == printNum);
+    return 0;
+}
+
+void print(int a) {
+    printf("%d\n", a);
+}
+
+// 输出
+函数名本身指向函数代码的指针
+11
+printNum1 == printNum 1
+````
+
+那这个函数指针的意义在哪里呢？那就是在函数原型中，函数的参数和返回值可以是函数，这个就很有意思了。
+
+#### 函数原型
+
+函数必须先声明，后使用，而因为 C 语言的执行入口是 main 方法，所以函数的声明必须再 main 函数之前，否则会出现编译警告，找不到函数。
+
+函数原型是什么呢？上面说函数需要在 main 前进行声明，这样就会造成主要逻辑放在最后面，所以 C 语言提供了函数原型，告诉编译器每个函数的返回类型和参数类型，不需要写方法体，方法体可以在 main 函数之后补上，如下：
+
+````c
+#include "stdio.h"
+#include "stdbool.h"
+
+// 函数原型
+void print(int a);
+
+int main(void) {
+    // 获取函数的地址作为变量，printNum 是一个函数指针
+    void (*printNum)(int) = &print;
+    // 使用函数指针调用函数
+    printNum(10);
+
+    // 函数名本身指向函数代码的指针
+    if (&print == print) {
+        printf("函数名本身指向函数代码的指针\n");
+    }
+    void (*printNum1)(int) = print;
+    printNum1(11);
+    printf("printNum1 == printNum %d\n", printNum1 == printNum);
+    return 0;
+}
+
+// 函数体
+void print(int a) {
+    printf("%d\n", a);
+}
+````
+
+#### exit()
+
+`exit()`函数是用来终止整个程序的运行，该函数的定义是在头文件`stdlib.h`中，一旦执行到此函数，程序立即结束。
+
+`exit()` 可以向程序外部返回⼀个值，它的参数就是程序的返回值。⼀般来说，使⽤两个常量作为它的参数： `EXIT_SUCCESS` （相当于 0）表示程序运⾏成功，`EXIT_FAILURE` （相当于 1）表示程序异常中⽌。这两个常数也是定义在`stdlib.h`⾥⾯。
+
+````c
+#include "stdio.h"
+#include "stdlib.h"
+
+void print() {
+    exit(EXIT_FAILURE);
+    printf("Hello World!\n");
+}
+
+int main(void) {
+    print();
+//    exit(EXIT_SUCCESS);
+    printf("Hello My World!\n");
+    return 0;
+}
+````
+
+无论是在函数中，还是再 main 方法中，只要遇到了 exit，程序就会立即终止，后续的任何程序都不会运行。
+
+C 语言还提供了另外一个函数 `atexit()`，这个和 `exit()`的区别就在于可以传递一个函数，可以用来做退出程序时的收尾工作，该函数的原型也是在`stdlib.h`中。
+
+````c
+int	 atexit(void (* _Nonnull)(void));
+````
+
+作为参数的函数是有两个要求，那就是不能有参数，并且不能有返回值，这个让我想起了 Java 中的异常，但是又不太一样。
+
+````c
+#include "stdio.h"
+#include "stdlib.h"
+
+void print() {
+    exit(EXIT_FAILURE);
+    printf("Hello World!\n");
+}
+
+void hello() {
+    printf("Hello!\n");
+}
+
+int main(void) {
+    atexit(hello);
+    print();
+//    exit(EXIT_SUCCESS);
+    printf("Hello My World!\n");
+    return 0;
+}
+
+// 输出
+Hello!
+````
+
+#### 函数说明符
+
+函数说明符，是为了让编译器更加精确的知道函数的具体使用。
+
+##### extern 说明符
+
+对于多文件的项目，源码文件会用到其他文件声明的函数，这里就需要在当前文件中给出外部函数的原型，并用 `extern`说明该函数的定义来自于其他文件。
+
+````c
+#include "stdio.h"
+#include "stdlib.h"
+
+void swap(int* x, int* y);
+
+int main(void) {
+		int x = 10, y = 11;
+		swap(&x, &y);
+    return 0;
+}
+````
+
+上面的代码中，swap 就是声明在另外一个文件中，这里没有使用 `extern` 的原因是函数原型默认就是 `extern`，所以可以不加此说明符。
+
+##### static 说明符
+
+static 可以用于声明变量，也可以用于声明函数，声明变量表示只需要初始化一次，static 变量的初始化只能赋值为常量，而不能是变量，初始化后每次调用保持不变，这里给我感觉就像是全局变量，只不过这个全局变量是在作用域的全局：
+
+````c
+#include "stdio.h"
+
+static void counter() {
+    static int count = 1;
+    printf("%d\n", count);
+    count ++;
+}
+
+int main(void) {
+    counter();
+    counter();
+    counter();
+    counter();
+    counter();
+}
+
+// 输出
+1
+2
+3
+4
+5
+````
+
+也就是我在调用 counter 的时候，内部变量 count 不会重新赋值，而是从上一次计算之后开始继续计算。
+
+那放在函数上是什么意思呢？可以看到 counter 就是使用 static 修饰的，这个意思就是私有，只能我当前文件使用，其它文件无法通过声明函数原型的方法来使用此函数。
+
+另外就是 static 可以用来修饰数组的长度，但是只可以修饰一维数组，如果是二维数组，只能修饰行。
+
+##### const 说明符
+
+const 表示不可修改，这个主要是放在函数参数中的，表明函数内部不得修改，但是 const 放的位置不同，不允许修改的范围不同，如下：
+
+````c
+#include "stdio.h"
+
+// 放在类型之前，允许修改指向的地址，但是不允许修改值
+void print(const int *p) {
+    // 下面行报错，编译不通过
+    // *p = 521;
+
+    // 下面行允许操作
+    int x = 521;
+    p = &x;
+    printf("print: %d\n", *p);
+}
+
+// 放在变量之前，允许允许修改值，但是不修改指向的地址
+void print1(int *const p) {
+    // 下面行允许操作
+    *p = 529;
+
+    // 下面行报错，编译不通过
+//    int x = 521;
+//    p = &x;
+    printf("print1: %d\n", *p);
+}
+
+void print2(const int *const p) {
+    // 下面行报错，编译不通过
+    // *p = 521;
+
+    // 下面行报错，编译不通过
+//    int x = 521;
+//    p = &x;
+    printf("print2: %d\n", *p);
+}
+
+int main(void) {
+    int p = 123;
+    printf("main: %d\n", p);
+    print(&p);
+    print1(&p);
+    print2(&p);
+}
+````
+
+总结下来就是：
+
+1. const 放在类型之前，表示不允许修改值，但是允许修改地址，例如上面的 print
+2. const 放在变量之前，表示不允许修改地址，但是允许修改值，例如上面的 print1
+3. 如果两个地方都放了，那就都不允许修改了，例如上面的 print2
+
+##### 可变参数
+
+可变参数就是有多少个参数是不确定的，声明函数的时候，可以使用`...`来表示可变数量的参数：
+
+````c
+int printf(const char* format, ...);
+````
+
+在函数的原型中，表示可变参数的`...`必须放在参数的末尾，否则会报错。
+
+那生命了如何操作呢，操作可变参数的宏放在了`stdarg.h`中，有如下几个：
+
+1. va_list：一个数据类型，用来定义一个可变参数对象。必须在操作可变参数时，首先使用
+2. va_start：一个函数，用于初始化可变参数对象。它接受两个参数，第⼀个参数是可变参数对象，第⼆个参数是原始函数⾥⾯，可变参数之前的那个参数，⽤来为可变参数定位
+3. va_arg：⼀个函数，⽤来取出当前那个可变参数，每次调⽤后，内部指针就会指向下⼀个可变参数。它接受两个参数，第⼀个是可变参数对象，第⼆个是当前可变参数的类型。
+4. va_end：⼀个函数，⽤来清理可变参数对象。
+
+````c
+#include "stdio.h"
+#include "stdarg.h"
+
+// 这里的 i 表示可变参数的个数
+double average(int i, ...) {
+    double total = 0;
+    // 可变参数对象
+    va_list ap;
+    // 将 i 后面的参数统一放到 ap 中
+    va_start(ap, i);
+    // 遍历累加
+    for (int j = 1; j <= i; ++j) {
+        total += va_arg(ap, double);
+    }
+    // 清理可变参数对象
+    va_end(ap);
+    return total / i;
+}
+
+int main(void) {
+    // 注意的是传递的参数要和期望的参数类型相同
+    double avg = average(5, 2.0, 4.0, 6.0, 8.0, 10.0);
+    printf("%f\n", avg);
+}
+````
+
+下面提供两段错误代码，是我个人在测试的时候遇到的问题：
+
+````c
+#include "stdio.h"
+#include "stdarg.h"
+
+// 这里的 i 表示可变参数的个数
+int average(int i, ...) {
+    int total = 0;
+    va_list ap;
+    va_start(ap, i);
+    for (int j = 1; j <= i; ++j) {
+    		// 错误的地方
+        total += va_arg(ap, double);
+    }
+    va_end(ap);
+    return total / i;
+}
+
+int main(void) {
+    int avg = average(5, 2, 4, 6, 8, 10);
+    printf("%d\n", avg);
+}
+````
+
+````c
+#include "stdio.h"
+#include "stdarg.h"
+
+// 这里的 i 表示可变参数的个数
+double average(int i, ...) {
+    double total = 0;
+    va_list ap;
+    va_start(ap, i);
+    for (int j = 1; j <= i; ++j) {
+        total += va_arg(ap, double);
+    }
+    va_end(ap);
+    return total / i;
+}
+
+int main(void) {
+		// 错误的地方
+    double avg = average(5, 2, 4, 6, 8, 10);
+    printf("%f\n", avg);
+}
+````
+
+### 数组
 

@@ -40,5 +40,5 @@ int main(void) {
     printf("%d\n", i1 < j3);
     // 输出 1
     printf("%d\n", i1 == j3);
-    return 1;
+    return 0;
 }

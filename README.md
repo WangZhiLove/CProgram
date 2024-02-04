@@ -1305,3 +1305,287 @@ int main(void) {
 
 ### 数组
 
+数组的概念就是同一种类型的值按照顺序的方式存储在一起，数组的声明是 `int scores[100]`，其中 100 就是数组的容量，数组在声明的时候必须指明容量，数组的索引都是从 0 开始，例如上面声明的数组访问第一个和访问最后一个的代码如下
+````c
+int scores[100]；
+scores[0] = 1;
+scores[99] = 100;
+````
+
+**C 语言有个神奇的地方就是我可以访问越界的元素，并不会报错，但是会不知不觉更改其它变量的值，这很容易引发错误并不易被发现，所以不要越界访问尤为重要。**
+
+#### 数组的初始化
+
+数组的初始化就是两种方式，分别是索引初始化和大括号初始化，下面代码展示下：
+
+````c
+#include "stdio.h"
+
+int main(void) {
+    // 索引初始化
+    int arr1[10];
+    arr1[0] = 1;
+    arr1[9] = 10;
+    // int 中没有被初始化的
+    printf("%d\n", arr1[5]);
+  	// 这里的 sizeof 来计算数组的长度，这里在下面说
+    for (int i = 0; i < (sizeof(arr1) / sizeof(arr1[0])); ++i) {
+        printf("%d\n", arr1[i]);
+    }
+    printf("=================================\n");
+    // 大括号初始化
+    int arr2[] = {1,2,3,4,5,6,7,8};
+    // 输出 8
+    printf("%d\n", arr2[7]);
+    for (int i = 0; i < (sizeof(arr2) / sizeof(arr2[0])); ++i) {
+        printf("%d\n", arr2[i]);
+    }
+    int arr3[] = {[2] = 10, [20] = 30};
+    // 输出 30
+    printf("%d\n", arr3[20]);
+}
+
+// 输出结果
+1
+1
+1
+1864446448
+1
+1864446224
+1
+-2007382928
+-1890058239
+12516752
+10
+=================================
+8
+1
+2
+3
+4
+5
+6
+7
+8
+30
+````
+
+可以看出再第一个数组中，没有被初始化的值，变成了随机值，这个是因为数组 10 的位置不直到在哪里，从而无法确定值是多少。
+
+#### 数组的长度
+
+数组的长度如何计算呢？上面的代码其实已经展示了，那就是 sizeof，sizeof 具体是什么意思呢？sizeof 运算符会返回整个数组的字节长度，注意是字节长度，那元素数量如何计算呢？那就是数组的字节长度除以单个元素的字节长度：`sizeof(arr2) / sizeof(arr2[0])`
+
+#### 多维数组
+
+C 语言允许声明多维数组，有多少个维度，就用多少个方括号，例如二维数组就是两个括号 `int board[10][10];`，但是无论数组有多少个维度，都是线性存储的。
+
+#### 变长数组
+
+数组声明的时候，数组长度出了使用常量外，还可以使用变量，这就叫做变长数组，变长数组在运行期间才可以确定长度
+
+````c
+int n = a + b;
+int a[n];
+````
+
+其中的 a 数组就是变长数组，任何在运行期间长度才能确定的数组都是变长数组。
+
+#### 数组的地址
+
+数组是一连串连续存储的同类型值，所以只要获得起始地址，就能推算出其它成员的地址
+
+````c
+#include "stdio.h"
+
+int sum(int arr[], int len);
+
+int main(void) {
+    int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    // 使用首元素的地址推其它成员的地址
+    int *p = &arr2[0];
+    printf("%d\n", *p);
+  	// 这里我以为是根据字节确定地址呢？其实并不是，+1 就是获取下一个索引的元素
+    printf("%d\n", *(p + 4));
+    printf("arr2 sum : %d\n", sum(p, sizeof(arr2) / sizeof(arr2[0])));
+}
+
+int sum(int arr[], int len) {
+    int total = 0;
+    for (int i = 0; i < len; ++i) {
+        total += arr[i];
+    }
+    return total;
+}
+// 输出结果为
+1
+5
+arr2 sum : 36
+````
+
+注意的是不允许修改数组名指向的地址，也是也容易思考，我如果可以随意修改数组指向的地址，那我就可以随意破坏地址，原来的数组地址也就无法找到，成为垃圾数据了，这非常不安全。
+
+#### 数组指针的加减法
+
+C 语言中，数组名也可以进行加法和减法运算，等同于再数组成员之间前后移动，即从一个成员的内存地址移动到另一个成员的内存地址，+1 是后移，-1 是前移。
+
+````c
+int a[5] = {11, 22, 33, 44, 55};
+for (int i = 0; i < 5; i++) {
+	printf("%d\n", *(a + i));
+}
+````
+
+使用 while 循环
+
+````c
+#include "stdio.h"
+
+int sum(int arr[], int len);
+int sum1(int* start, int* end);
+int main(void) {
+    int arr2[] = {1, 2, 3, 4, 5, 6, 7, 8};
+    int *p = &arr2[0];
+    printf("%d\n", *p);
+    printf("%d\n", *(p + 4));
+    printf("arr2 sum : %d\n", sum(p, sizeof(arr2) / sizeof(arr2[0])));
+    printf("arr2 sum : %d\n", sum1(p, p + 8));
+}
+
+int sum(int arr[], int len) {
+    int total = 0;
+    for (int i = 0; i < len; ++i) {
+        total += arr[i];
+    }
+    return total;
+}
+
+int sum1(int* start, int* end) {
+    int total = 0;
+    while (start < end) {
+        total += *start;
+        start ++;
+    }
+    return total;
+}
+// 输出
+1
+5
+arr2 sum : 36
+arr2 sum : 36
+````
+
+#### 数组的复制
+
+由于数组名就是指针，所以复制数组不能简单的复制数组名，也就是如何进行深拷贝。
+
+复制最简单的方法还是使用循环
+
+````c
+for (i = 0; i < N; i++)
+		a[i] = b[i];
+````
+
+另外一种方法是使用 `memcpy()` 函数，定义再`string.h`头文件中，意思是把数组所在的那一段内存，复制一份。
+
+````c
+memcpy(a, b, sizeof(b));
+````
+
+参数分别是目标数组 a，原数组 b，复制的长度是 sizeof(b)。
+
+#### 将数组作为函数的参数
+
+将数组作为函数的参数时，一般要传入数组名以及数组的长度(这里我比较疑惑的是数组的长度不能直接计算出来吗？)，下面使用实例展示。
+
+````c
+#include "stdio.h"
+
+int sumArr(int arr[], int len);
+
+int sumArr1(int arr[][4], int len);
+
+int sumArr2(int arr[]);
+
+int main(void) {
+    // 声明数组
+    int arr[] = {1, 2, 3, 4};
+    printf("sizeof(arr) : %lu\n", sizeof(arr));
+    printf("sizeof(arr[0]) : %lu\n", sizeof(arr[0]));
+    // 调用函数
+    printf("调用传入数组名以及长度的函数：%d\n", sumArr(arr, 4));
+    printf("调用传入数组名，不传入长度的函数：%d\n", sumArr2(arr));
+    // 声明二维数组
+    int arr1[2][4] = {{1, 2, 3, 4},
+                      {5, 6, 7, 8}};
+    printf("调用传入数组名和传入长度的函数：%d\n", sumArr1(arr1, 2));
+}
+
+int sumArr(int arr[], int len) {
+    int sum = 0;
+    for (int i = 0; i < len; ++i) {
+        sum += arr[i];
+    }
+    return sum;
+}
+
+int sumArr1(int arr[][4], int len) {
+    int sum = 0;
+    for (int i = 0; i < len; ++i) {
+        for (int j = 0; j < sizeof(arr[i]) / sizeof(arr[i][0]); ++j) {
+            sum += arr[i][j];
+        }
+    }
+    return sum;
+}
+
+int sumArr2(int arr[]) {
+    int sum = 0;
+    printf("sizeof(arr) : %lu\n", sizeof(arr));
+    printf("sizeof(arr[0]) : %lu\n", sizeof(arr[0]));
+    for (int i = 0; i < sizeof(arr) / sizeof(arr[0]); ++i) {
+        sum += arr[i];
+    }
+    return sum;
+}
+
+// 输出的结果是
+sizeof(arr) : 16
+sizeof(arr[0]) : 4
+调用传入数组名以及长度的函数：10
+sizeof(arr) : 8
+sizeof(arr[0]) : 4
+调用传入数组名，不传入长度的函数：3
+调用传入数组名和传入长度的函数：36
+````
+
+从结果来看一维数组一定要传入长度，通过 sizeOf 是无法获取长度的，而是获取的指针的长度，对于二维数组而言，一维的长度要传入，二维的长度要在参数中进行声明。
+
+如果是变长数组，则数组的长度一定要在数组之前，如下
+
+````c
+int sumArr3(int len, int arr[len]);
+int sumArr3(int len, int arr[len]) {
+    int sum = 0;
+    for (int i = 0; i < len; ++i) {
+        sum += arr[i];
+    }
+    return sum;
+}
+````
+
+字面量数组作为参数，就是直接将数组作为参数传给方法，如下
+
+````c
+sumArr((int[]) {1, 2, 3, 4}, 4);
+int sumArr(int arr[], int len) {
+    int sum = 0;
+    for (int i = 0; i < len; ++i) {
+        sum += arr[i];
+    }
+    return sum;
+}
+````
+
+
+

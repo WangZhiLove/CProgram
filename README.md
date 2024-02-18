@@ -1587,5 +1587,155 @@ int sumArr(int arr[], int len) {
 }
 ````
 
+### 字符串
 
+C 语言没有单独的字符串类型，字符串被当作字符数组，比如字符串 Hello 实际存储的是`{'H','e','l','l','o','\n'}`。最后的 \n 表示的是字符串的结束符，二进制的形式为 00000000。
+
+虽然如此，但是 C 语言提供了一种极简的写法，双引号中间的字符，会被自动视为字符数组，如果字符串过长，可以在需要折行的地方，使用 \ 结尾，将一行拆分为多行。
+
+#### 字符串变量的声明
+
+字符串的声明可以以字符数组的方式声明，也可以以指针的方式声明，如下：
+
+````c
+char s[14] = "Hello, world!";
+// 长度可以省略或者大于实际的长度，但是不能小于，注意要考虑以后的结束符，所以在声明的时候尽量不要写长度
+char s2[] = "Hello, world!";
+char* s1 = "Hello, world!";
+printf("%s\n", s);
+printf("%s\n", s1);
+printf("%s\n", s2);
+
+//输出
+Hello, world!
+Hello, world!
+Hello, world!
+````
+
+两种不同方法的差异是，使用指针的方式声明，字符串为常量，无法进行修改，例如：
+
+````c
+char* s = "Hello, world!";
+s[0] = 'z'; // 错误，执行中断，但是是非受检异常
+
+char s[14] = "Hello, world!";
+s[0] = 'a';
+printf("%s\n", s);
+// 输出
+aello, world!
+````
+
+为什么指针的方式无法修改呢？原因是指针的字符串保存在内存栈区，栈区的值由系统管理，一般不允许的修改；数组字符串的副本会被拷贝到堆区，堆区的值由用户管理，可以被修改。如果使用指针的方式，建议加上修饰符 const，表明只读，不可修改。
+
+````c
+const char* s = "Hello, world!";
+````
+
+第二个差异就是指针变量可以指向其它字符串，但是字符数组的变量不可以
+
+````c
+char* pointStr = "How are you?";
+pointStr = "Hello, Siri!";
+char arrStr[] = "Hello";
+arrStr = "World"; // 错误，受检异常，编译器直接报错
+````
+
+原因在于字符数组的变量名是和指向的数组绑定的，不能指向另外一个数组。那如果我声明了，但是没有赋值，后续如何赋值呢？可以使用C语言提供的`strcpy()`函数。
+
+````c
+char arrStr[10];
+strcpy(arrStr, "Hello");
+printf("%s\n", arrStr);
+````
+
+函数是在头 `#include <string.h>` 中。
+
+#### strlen() 
+
+`strlen()`返回字符串的长度，不包括结束符号，同样是在头`string.h`中。
+
+````c
+char arrStr[10];
+strcpy(arrStr, "Hello");
+printf("%s\n", arrStr);
+printf("字符串 arrStr 的长度为：%lu\n", strlen(arrStr));
+printf("字符串 arrStr 的字符串长度为：%lu\n", sizeof(arrStr));
+// 输出为
+Hello
+字符串 arrStr 的长度为：5
+字符串 arrStr 的字符串长度为：10
+````
+
+如果要自己计算长度呢？那就只能遍历数组，然后寻找结束符，结束符之前的都是有效长度。
+
+#### strcpy()
+
+字符串的复制，不能使用赋值运算符(=)，如果是指针的话使用赋值运算符表示将指针的地址赋给另外一个指针，而不是值的复制。
+
+注意的是复制的时候目标字符串数组的长度不能小于源字符串数组的长度，否则虽然不会报错，但是会溢出边界，可能造成难以预料的结果。
+
+````c
+#include <string.h>
+#include "stdio.h"
+
+int main(void) {
+    char arrStr[10];
+    strcpy(arrStr, "Hello");
+    printf("%s\n", arrStr);
+
+    char copyStr[100];
+    strcpy(copyStr, arrStr);
+    copyStr[0] = 'a';
+    printf("%s\n", arrStr);
+    printf("%s\n", copyStr);
+}
+// 输出
+Hello
+Hello
+aello
+````
+
+`strcpy()` 返回值是第一个字符串的指针，如下
+
+````c
+char s10[] = "best!";
+char s20[20] = "I'm good!";
+char* ps = strcpy(s20 + 4, s10);
+printf("%s\n", s10);
+printf("%s\n", s20);
+printf("%s\n", ps);
+// 输出
+best!
+I'm best!
+best!
+````
+
+#### strncpy()
+
+`strncpy()`和`strcpy()`相同，只是多了第三个参数用于控制复制的最大字符数，防止溢出。
+
+````c
+char s20[20] = "I'm good!";
+char s30[30];
+strncpy(s30, s20, 3);
+s30[4] = '\n';
+printf("%s\n", s30);
+// 输出
+I'm
+````
+
+#### strcat() 以及 strncat()
+
+字符串连接，`strcat()` 接收两个字符串参数，会将第二个字符串的值拼接到第一个字符串的后面，会改变第一个字符串。
+
+`strncat()` 接收三个参数，第三个参数表示拼接的最大长度，为了不超过字符串1的最大长度，一般的写法是 `sizeof(str1) - strlen(str1) - 1`。`strncat()`总会在拼接的结尾后添加\n，并且为了避免溢出，推荐使用`strncat()`
+
+````c
+char* pointStr = "Hello, Siri!";
+char s20[20] = "I'm best!";
+strncat(s20, pointStr, sizeof(s20) - strlen(s20) - 1);
+printf("s20: %s\n", s20);
+// 输出
+s20: I'm best!Hello, Sir
+````
 

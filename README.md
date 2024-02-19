@@ -1739,3 +1739,85 @@ printf("s20: %s\n", s20);
 s20: I'm best!Hello, Sir
 ````
 
+#### strcmp()以及strncmp()
+
+字符串的对比只能一位一位字符进行对比，C 语言提供了 strcmp() 函数用于比较两个字符串的内容，根据字典的顺序，返回值有三种情况，相等返回0，s1小于s2返回值小于0，s1大于s2，返回值大于0。
+
+````c
+// 比较
+char cmpS1[] = "Hello World!";
+char cmpS2[] = "Hello World!";
+char cmpS3[] = "Hello Z";
+
+printf("s1 cmp s2: %d\n", strcmp(cmpS1, cmpS2));
+printf("s2 cmp s3: %d\n", strcmp(cmpS2, cmpS3));
+printf("s3 cmp s2: %d\n", strcmp(cmpS3, cmpS2));
+// 输出如下
+s1 cmp s2: 0
+s2 cmp s3: -3
+s3 cmp s2: 3
+````
+
+strncmp() 是只比较到前多少个字符。
+
+````c
+printf("s3 ncmp s2: %d\n", strncmp(cmpS3, cmpS2, 5));
+// 输出
+s3 ncmp s2: 0
+````
+
+#### sprintf()以及snprintf()
+
+sprintf()与printf()类似，但是不是输出到显示器，而是将数据写入字符串，函数定义在 stdio.h 头文件中。
+
+sprint()有多个参数，第一个参数是写入到的字符串，第二个是格式字符串，后续的都是待写入的变量列表。
+
+````c
+// 写入
+char printS1[] = "Hello";
+char printS2[] = "World";
+char printS3[12];
+sprintf(printS3, "%s %s", printS1, printS2);
+printf("printS3: %s\n", printS3);
+// 输出
+printS3: Hello World
+````
+
+如果遇到错误，返回负值。
+
+snprintf() 多了一个参数，就是写入的最大长度，如下就是 12，snprintf 返回值是写入变量的字符数量，不包括尾部的 \n，因此返回值应该小于我们定义的最大长度，如果遇到错误，返回负值。
+
+````
+// 写入
+char printS1[] = "Hello";
+char printS2[] = "World";
+char printS3[12];
+snprintf(printS3, 12, "%s %s", printS1, printS2);
+printf("printS3: %s\n", printS3);
+// 输出
+printS3: Hello World
+````
+
+### 字符串数组
+
+如果一个数组的每一个成员都是字符串，需要通过二维的字符数组来实现，含义就是每个字符串本身就是数组，多个字符串再组成一个数组。
+
+````c
+// 字符串数组
+char colors1[4][6] = {"red", "green", "blue", "pink"};
+char colors2[][6] = {"red", "green", "blue", "pink"};
+char* colors3[] = {"red", "green", "blue", "pink"};
+for (int i = 0; i < sizeof(colors3) / sizeof(colors3[0]); ++i) {
+    printf("colors %d : %s\n", i, colors3[i]);
+}
+// 输出
+colors 0 : red
+colors 1 : green
+colors 2 : blue
+colors 3 : pink
+````
+
+二维数组中，一维的长度可以省略，二维的长度不可以，注意二维应该是所有字符串中最长字符串的长度，并且要包含结束符，所以一般使用指针的方式来初始化字符串数组，避免计算。
+
+
+

@@ -1819,5 +1819,154 @@ colors 3 : pink
 
 二维数组中，一维的长度可以省略，二维的长度不可以，注意二维应该是所有字符串中最长字符串的长度，并且要包含结束符，所以一般使用指针的方式来初始化字符串数组，避免计算。
 
+## C 语言的内存管理
+
+内存管理是基于变量的声明周期来做的，主要是系统管理的栈区以及用户管理的堆区，对于局部变量来说，是在栈区，函数运行时进入内存，结束之后从内存中卸载，存储在**栈**上；对于全局变量来说，系统无法进行管理，只能用户来手动释放，如果使用后忘记释放，就会一直占用内存，这就是**内存泄漏**，这些变量存储在**堆**上。
+
+### void 指针
+
+void 指针的使用是在我不知道这个内存块是什么类型，只有在使用到该内存块的时候，再向编译器进行说明，void 指针只有内存块的地址信息。
+
+这个 void 指针让我想起了 Java 中的 Object，是不是借鉴了 void 指针呢？Java 中所有的对象都继承了 Object，都是 Object 的子类，都可以与 Object 进行相互转换，和 void 指针式极其相似。
+
+````c
+#include "stdio.h"
+
+int main(void) {
+    // void 指针
+    int i = 10;
+    // 整数指针转化为 void 指针
+    void* vPoint = &i;
+    // void 指针转化为整数指针
+    int* iPoint = vPoint;
+  	// 结果输出为 10
+    printf("iPoint: %d\n", *iPoint);
+  	// 以下写法错误，因为不知道类型，不可以直接使用
+    // printf("iPoint: %d\n", *vPoint);
+}
+````
+
+### 内置函数
+
+#### malloc() 以及 free()
+
+malloc() 函数用于分配内存，也就是向系统要一段内存，函数存放在头 stdlib.h 中。
+
+malloc() 函数需要传入分配内存的大小，返回的是 void 指针，因为不知道存放的是什么类型，所以常见的做法就是把分配类型的字节长度传入：
+
+````c
+// malloc
+int* iMalloc = malloc(sizeof(int));
+*iMalloc = 10;
+// 输出 10
+printf("iMalloc: %d\n", *iMalloc);
+````
+
+申请内存是有失败的风险，因此在申请完了之后尽量检查一下，如果申请失败会返回 NULL。
+
+内存申请可以在创建数组的时候使用。下面使用 malloc 申请一个字符串数组
+
+````c
+#include <string.h>
+#include "stdio.h"
+#include "stdlib.h"
+
+int main(void) {
+    // 使用 malloc 声明一个字符串数组，5个元素，最大长度为12
+    char** strArr = malloc(5 * sizeof(char *));
+    if (strArr == NULL) {
+        perror("malloc for strArray failed");
+        exit(EXIT_FAILURE);
+    }
+    // 为每一个字符串分配内存
+    for (int i = 0; i < 5; ++i) {
+        strArr[i] = malloc(12);
+        if (strArr[i] == NULL) {
+            perror("malloc for strArray[i] failed");
+            // 释放之前分配的所有内存
+            for (int j = 0; j < i; ++j) {
+                free(strArr[j]);
+            }
+            free(strArr);
+            exit(EXIT_FAILURE);
+        }
+    }
+    strcpy(strArr[0], "Hello");
+    strcpy(strArr[1], "World");
+    strcpy(strArr[2], "This");
+    strcpy(strArr[3], "Is");
+    strcpy(strArr[4], "C Language");
+
+    // 打印字符串数组
+    for (int i = 0; i < 5; ++i) {
+        printf("String %d: %s\n", i, strArr[i]);
+    }
+    // 释放内存
+    for (int j = 0; j < 5; ++j) {
+        free(strArr[i]);
+    }
+    free(strArr);
+}
+// 输出
+String 0: Hello
+String 1: World
+String 2: This
+String 3: Is
+String 4: C Language
+````
+
+free() 函数就是用于释放申请的内存，如果不释放，那在程序结束之前，申请的内存在不使用的情况下就会出现内存泄漏，尤其是在子函数中。
+
+````c
+void gobble(double arr[], int n) {
+	double* temp = (double*) malloc(n * sizeof(double));
+}
+````
+
+代码中的 temp 如果不释放的话，每次调用都会带来一个内存块的申请与泄漏，因为离开了函数之后，temp 就被销毁了，之前申请的内存谁也无法访问到。
+
+#### calloc() 
+
+calloc() 与 malloc() 的作用类似，都是用于内存申请，不同的地方在于 calloc 接收两个参数，第一个是需要分配的元素数量，第二个是每个元素的大小，以字节为单位，第二个不同点就是 calloc 函数会进行初始化，所以 calloc = malloc + memset。
+
+````c
+// calloc
+int* pCalloc = calloc(10, sizeof(int));
+
+// 等同于
+int* qMalloc = malloc(10 * sizeof(int));
+memset(qMalloc, 0, (sizeof(int)) * 10);
+````
+
+#### realloc()
+
+realloc 的意思是重新分配内存，有种扩容以及缩减的味道在，接收两个参数，第一个参数是已经分配好的内存块指针，也可以是 NULL，如果是 NULL，表示新建一个内存块指针；第二个参数表示内存块的新大小，新大小可能大于原来的内存块大小，也可能小于，还可以是0，0表示释放，小于就是丢弃超出的部分，大于会新增内存空间，但不会对新的内存空间初始化，也就是要开发者来调用memset()。
+
+````c
+// calloc
+int* pCalloc = calloc(10, sizeof(int));
+
+// realloc,扩容为 1000
+pCalloc = realloc(pCalloc, sizeof(int) * 1000);
+int* rCalloc = realloc(NULL, sizeof(int) * 2000);
+````
+
+#### restrict 说明符
+
+restrict 可以使用在指针变量声明的时候，表示受限指针，这个和 Java 中的 final 相似，比如说 String 被final 修改，一旦初始化就不可修改，这里也是相同的，一旦声明了受限指针，并且分配了内存，这意味着这块内存只有当前指针可以访问，其它指针不可以访问。
+
+````c
+int* restrict pRestrict = malloc(sizeof(int));
+int* q = pRestrict;
+*q = 100;
+printf("pRestrict: %d\n", *pRestrict);
+````
+
+上面的程序会正常运行，也就是说违反`restrict`规则通常会导致未定义的行为，这意味着编译器可能生成的代码并不保证按照你预期的方式运行，但是这并不是强一致的运行时检查异常。 
+
+#### memcpy()
+
+
+
 
 

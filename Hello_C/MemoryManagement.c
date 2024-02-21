@@ -6,21 +6,21 @@ int main(void) {
     // void 指针
     int i = 10;
     // 整数指针转化为 void 指针
-    void* vPoint = &i;
+    void *vPoint = &i;
     // void 指针转化为整数指针
-    int* iPoint = vPoint;
+    int *iPoint = vPoint;
     printf("iPoint: %d\n", *iPoint);
     // 以下写法错误，因为不知道类型，不可以直接使用
     // printf("iPoint: %d\n", *vPoint);
 
     // malloc
-    int* iMalloc = malloc(sizeof(int));
+    int *iMalloc = malloc(sizeof(int));
     *iMalloc = 10;
     // 输出 10
     printf("iMalloc: %d\n", *iMalloc);
     free(iMalloc);
     // 使用 malloc 声明一个字符串数组，5个元素，最大长度为12
-    char** strArr = malloc(5 * sizeof(char *));
+    char **strArr = malloc(5 * sizeof(char *));
     if (strArr == NULL) {
         perror("malloc for strArray failed");
         exit(EXIT_FAILURE);
@@ -55,21 +55,44 @@ int main(void) {
     free(strArr);
 
     // calloc
-    int* pCalloc = calloc(10, sizeof(int));
+    int *pCalloc = calloc(10, sizeof(int));
 
     // 等同于
-    int* qMalloc = malloc(10 * sizeof(int));
+    int *qMalloc = malloc(10 * sizeof(int));
     memset(qMalloc, 0, (sizeof(int)) * 10);
 
     // realloc
     pCalloc = realloc(pCalloc, sizeof(int) * 1000);
-    int* rCalloc = realloc(NULL, sizeof(int) * 2000);
+    int *rCalloc = realloc(NULL, sizeof(int) * 2000);
     free(pCalloc);
     free(rCalloc);
     // restrict
-    int* restrict pRestrict = malloc(sizeof(int));
-    int* q = pRestrict;
+    int *restrict pRestrict = malloc(sizeof(int));
+    int *q = pRestrict;
     *q = 100;
     printf("pRestrict: %d\n", *pRestrict);
     free(pRestrict);
+
+    // memcpy
+    char *hello = "Hello world!";
+    // 加 1 是因为 strlen 不包含结束符
+    int len = strlen(hello) + 1;
+    char *dest = malloc(len);
+    memcpy(dest, hello, len);
+    printf("dest: %s\n", dest);
+    free(dest);
+
+    // memmove
+    // 将数组全部向前移动一位
+    int array[100];
+    memmove(&array[0], &array[1], 99 * sizeof(int));
+    // 字符串的覆盖，输出world world！
+    char hello1[] = "Hello world!";
+    printf("memmove:%s\n", (char *)memmove(hello1, &hello1[6], 5));
+
+    // memcmp
+    char hello2[] = "Hello world!";
+    printf("hello2 == hello: %d\n", memcmp(hello2, hello, 5));
+    printf("hello1 > hello2: %d\n", memcmp(hello1, hello2, 5));
+
 }

@@ -1966,6 +1966,53 @@ printf("pRestrict: %d\n", *pRestrict);
 
 #### memcpy()
 
+内存拷贝，三个参数，目标地址，源地址以及拷贝的字节数，返回值就是目标地址的指针。
+
+memcpy() 可以用来替代strcpy() 方法，来进行字符串的复制，因为字符串的拷贝是按照字节来拷贝，并且遇到结束符终止，但是 memcpy 直接拷贝内存，所以更快更安全。
+
+````c
+// memcpy
+char* hello = "Hello world!";
+// 加 1 是因为 strlen 不包含结束符
+int len = strlen(hello) + 1;
+char* dest = malloc(len);
+// 复制，相当于 strcpy(dest, hello);
+memcpy(dest, hello, len);
+printf("dest: %s\n", dest);
+// 输出 Hello world!
+free(dest);
+````
+
+#### memmove()
+
+与 memcpy 函数相通，都是将一段内存复制到另一段内存，不同的区别在于 memcpy 不允许源地址和目标地址有重叠，memmove 则允许重叠，重叠部分会被覆盖，没有重叠则和memcpy完全相同。
+
+````c
+// memmove
+// 将数组全部向前移动一位
+int array[100];
+memmove(&array[0], &array[1], 99 * sizeof(int));
+// 字符串的覆盖，输出world world！
+char hello1[] = "Hello world!";
+printf("memmove:%s\n", (char *)memmove(hello1, &hello1[6], 5));
+````
+
+#### memcmp()
+
+内存区域的对比，接收三个参数，前两个是比较的指针，最后一个是比较的字节数，返回值是一个整数，相等返回0；第一个参数比第二个参数大，返回大于 0 的整数；如果小，返回小于 0 的整数。
+
+````c
+// memcmp
+char *hello = "Hello world!";
+char hello1[] = "world world!";
+char hello2[] = "Hello world!";
+printf("hello2 == hello: %d\n", memcmp(hello2, hello, 5));
+printf("hello1 > hello2: %d\n", memcmp(hello1, hello2, 5));
+// 输出
+hello2 == hello: 0
+hello1 > hello2: 47
+````
+
 
 
 

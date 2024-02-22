@@ -2013,7 +2013,96 @@ hello2 == hello: 0
 hello1 > hello2: 47
 ````
 
+## Struct 结构
 
+C 语言内置的数据类型，除了基本类型和符合类型数组外，没有多余的了，基于此，C 语言提供了 Struct 来允许开发者自定义复合数据结构，Struct 是一个只有属性没有函数的一个数据结构，也可以把它看作是类的声明。
+
+Struct 可以先声明数据结构，后声明变量以及初始化，还可以使用大括号一次性赋值：
+
+`````c
+#include "stdio.h"
+
+struct animal {
+    int age;
+    char *kind;
+};
+
+int main(void) {
+    struct animal dog;
+    dog.kind = "狗";
+    dog.age = 5;
+    printf("动物的种类是：%s\n", dog.kind);
+    printf("动物的年龄是：%d\n", dog.age);
+  
+    struct animal cat = {3, "猫"};
+    printf("动物的种类是：%s\n", cat.kind);
+    printf("动物的年龄是：%d\n", cat.age);
+  	// 声明数组对象
+  	struct animal animals[100];
+}
+// 输出
+动物的种类是：狗
+动物的年龄是：5
+动物的种类是：猫
+动物的年龄是：3
+`````
+
+还可以用下面下面两种方式：
+
+````c
+struct user {
+    char *name;
+    char *email;
+} user1, user2;
+user1.name = "大王";
+user1.email = "da.wang@qq.com";
+user2.name = "小王";
+user2.email = "xiao.wang@qq.com";
+printf("%s 的邮箱为：%s\n", user1.name, user1.email);
+printf("%s 的邮箱为：%s\n", user2.name, user2.email);
+
+struct {
+    char *name;
+    char *email;
+} people1 = {"王炸", "wang.zha@huohua.cn"},
+people2 = {"不玩了", "wanbuqi@qq.com"};
+printf("%s 的邮箱为：%s\n", people1.name, people1.email);
+printf("%s 的邮箱为：%s\n", people2.name, people2.email);
+
+// 输出为：
+大王 的邮箱为：da.wang@qq.com
+小王 的邮箱为：xiao.wang@qq.com
+王炸 的邮箱为：wang.zha@huohua.cn
+不玩了 的邮箱为：wanbuqi@qq.com
+````
+
+可以使用 typedef 来为结构声明别名，如：
+
+````c
+// 别名
+typedef struct account {
+    char *name;
+    char *email;
+} people;
+people p1 = {"别名来了", "123@qq.com"};
+printf("别名 %s 的邮箱为：%s\n", p1.name, p1.email);
+// 输出结构的长度
+printf("p1 结构的长度：%lu\n", sizeof(p1));
+struct animal {
+    int age;
+    char *kind;
+};
+struct animal dog;
+dog.kind = "狗";
+dog.age = 5;
+printf("dog 结构的长度：%lu\n", sizeof(dog));
+// 输出
+别名 别名来了 的邮箱为：123@qq.com
+p1 结构的长度：16
+dog 结构的长度：16
+````
+
+p1 的长度是16，原因是在 64 位的操作系统中，指针一般是 8 个字节，那为什么dog也是16呢，int 是 4 字节，kind 指针式 8 字节，加起来不是12嘛，这个的原因是由编译器决定的，一般为了性能考虑，做了内存对其，这样在读取的时候会更快点。
 
 
 

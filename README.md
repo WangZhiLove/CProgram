@@ -2104,5 +2104,46 @@ dog 结构的长度：16
 
 p1 的长度是16，原因是在 64 位的操作系统中，指针一般是 8 个字节，那为什么dog也是16呢，int 是 4 字节，kind 指针式 8 字节，加起来不是12嘛，这个的原因是由编译器决定的，一般为了性能考虑，做了内存对其，这样在读取的时候会更快点。
 
+### Struct 复制
 
+struct 变量的复制使用的是赋值运算符，这会生成一个新的副本，这是一个深拷贝的操作，但是注意，如果 struct 的属性是指针，那就是复制的指针，而不是字符串本身，如下：
+
+````c
+#include "stdio.h"
+#include "string.h"
+#include "stdlib.h"
+
+struct animal1 {
+    int age;
+    char kind[30];
+};
+
+struct animal2 {
+    int age;
+    char *kind;
+};
+
+int main(void) {
+    struct animal1 dog1 = {4, "小狗"};
+    struct animal1 dog2 = dog1;
+    strcpy(dog2.kind, "拉布拉多");
+    printf("dog1.kind: %s\n", dog1.kind);
+    printf("dog2.kind: %s\n", dog2.kind);
+
+    struct animal2 dog3 = {4, "小狗"};
+    struct animal2 dog4 = dog3;
+    // 注意的是这里改变了指针指向的内存值
+    dog3.kind = "拉布拉多";
+    printf("dog3.kind: %s\n", dog3.kind);
+    printf("dog4.kind: %s\n", dog4.kind);
+}
+
+// 输出结果
+dog1.kind: 小狗
+dog2.kind: 拉布拉多
+dog3.kind: 拉布拉多
+dog4.kind: 小狗
+````
+
+看到这里其实我有个疑惑，这发现没有什么不同呀，无论是使用指针还是数组，实现的其实都是深拷贝，这里搞错了一点就是字符数组的复制会共享内存地址，但是 struct 结构是连属性都会复制。
 

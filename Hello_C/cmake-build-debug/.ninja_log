@@ -1,0 +1,4 @@
+# ninja log v5
+0	90	1709026600216174212	CMakeFiles/Hello_C.dir/main.c.o	7b3d57f315f055fe
+1	126	1709026600252188827	CMakeFiles/Hello_C.dir/StrurctPoint.c.o	aad11d8cff37986a
+126	291	1709026600415134311	Hello_C	d98c4c025b5ee70a

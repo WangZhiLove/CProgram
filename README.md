@@ -2147,3 +2147,50 @@ dog4.kind: 小狗
 
 看到这里其实我有个疑惑，这发现没有什么不同呀，无论是使用指针还是数组，实现的其实都是深拷贝，这里搞错了一点就是字符数组的复制会共享内存地址，但是 struct 结构是连属性都会复制。
 
+### Struct 指针
+
+看下面这个例子，我想把一个 Struct 结构传入函数，在函数内部发生修改，会出现什么情况？会发现并没有发生变化，这是因为传入函数内部的是struct结构的副本，因为如果想要改变外部的值，就需要使用指针，如下是完整的示例：
+
+````c
+#include "stdio.h"
+
+struct user {
+    char *name;
+    char *phone;
+    int age;
+};
+
+void ageIncr(struct user me) {
+    me.age += 1;
+}
+
+void ageIncr1(struct user *me) {
+    // (*me).age += 1;
+    // 使用 -> 优化上面复杂的写法
+    me->age += 1;
+}
+
+int main(void) {
+    struct user me = {"王智", "test123456", 29};
+    // 输出增加之前的age
+    printf("before age : %d\n", me.age);
+    ageIncr(me);
+    // 发现并没有变化，这个的原因是因为函数内部得到的是副本的变量
+    printf("after age : %d\n", me.age);
+    // 调用指针写法的函数
+    printf("before age : %d\n", me.age);
+    ageIncr1(&me);
+    // 改变
+    printf("after age : %d\n", me.age);
+}
+// 输出
+before age : 29
+after age : 29
+before age : 29
+after age : 30
+````
+
+指针的赋值优化后的写法就是 ->。
+
+### Struct 的嵌套
+

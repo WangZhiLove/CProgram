@@ -2284,3 +2284,50 @@ int main(void) {
 3
 ````
 
+### 位字段
+
+二进制位组成的数据结构，也就是 struct，称为位字段，对于底层的二进制数据操作非常有用。如下：
+````c
+#include "stdio.h"
+
+struct synth {
+    // 每个属性后面的 1 表示占据一个二进制位
+    unsigned int ab:1;
+    unsigned int cd:1;
+    unsigned int ef:1;
+    unsigned int gh:1;
+};
+
+int main(void) {
+    // 位字段
+    struct synth synth;
+    synth.ab = 0;
+    synth.cd = 1;
+}
+````
+
+注意，定义⼆进制位时，结构内部的各个属性只能是整数类型。
+
+实际存储的时候，C 语⾔会按照int类型占⽤的字节数，存储⼀个位字段结构。如果有剩余的⼆进制位，可以使⽤未命名属性，填满那些位。也可以使⽤宽度为0的属性，表示占满当前字节剩余的⼆进制位，迫使下⼀个属性存储在下⼀个字节。
+
+````c
+struct {
+unsigned int field1 : 1;
+unsigned int : 2;
+unsigned int field2 : 1;
+unsigned int : 0;
+unsigned int field3 : 1;
+} stuff;
+````
+
+这段代码定义了一个位字段结构（Bit-field structure）。分配一个或多个位来存储一个变量，而不是使用整个字节或字节的多个整数倍。用于节省空间。
+
+这个结构体的解释为：
+
+- `unsigned int field1 : 1;`: 这定义了一个名为`field1`的位字段，它将只占用1位，可以存储的最大值是1（二进制的`1`），因为`unsigned int`类型是无符号的，所以这1位可以表示的值是0或1。
+- `unsigned int : 2;`: 这是一个匿名位字段，它占用了2位，这两位没有名字，通常用于填充或跳过一些位。在这种情况下，这可能被用来对齐或保留空间。
+- `unsigned int field2 : 1;`: 这定义了另一个名为`field2`的位字段，同样只占用1位。
+- `unsigned int : 0;`: 这是一个特殊的位字段，它的宽度是0位。这不是用来存储任何数据的，而是一个指示符，告诉编译器当前位字段的分配应该结束在当前存储单元的最后，并在下一个存储单元开始新的位字段。这可以用来强制下一个位字段（如果有的话）在一个新的内存地址开始，从而实现对齐。
+- `unsigned int field3 : 1;`: 这定义了名为`field3`的位字段，占用1位。
+
+所以匿名位字段用于内存对其或者空间保留。

@@ -2331,3 +2331,53 @@ unsigned int field3 : 1;
 - `unsigned int field3 : 1;`: 这定义了名为`field3`的位字段，占用1位。
 
 所以匿名位字段用于内存对其或者空间保留。
+
+
+
+### 弹性数组成员
+
+我之前一直比较疑惑，如果 C 语言中，数组的声明一定要有容量，那我如果提前不知道容量，那不是要声明一个容量很大的数组，岂不是造成空间的浪费。C 如何解决这个场景问题呢？
+
+C 语言使用 struct 来解决，如下是一个 demo
+
+````c
+#include <stdio.h>
+#include <stdlib.h>
+
+struct elasticArr {
+    // 记录 chars 数组的长度
+    int len;
+    // 弹性数组成员
+    char chars[];
+};
+
+int main() {
+    // 声明数组的长度
+    int arrLen = 10;
+    struct elasticArr *myArr = malloc(sizeof(struct elasticArr) + arrLen * sizeof(char));
+    myArr->len = arrLen;
+    // 检查内存是否分配成功
+    if (!myArr) {
+        perror("malloc failed");
+        exit(EXIT_FAILURE);
+    }
+    // 使用弹性数组
+    for (int i = 0; i < myArr->len; ++i) {
+        myArr->chars[i] = 'a' + i;
+    }
+
+    // 打印弹性数组的内容
+    for (int i = 0; i < myArr->len; ++i) {
+        printf("%c ", myArr->chars[i]);
+    }
+    printf("\n");
+
+    // 释放内存
+    free(myArr);
+}
+// 输出
+a b c d e f g h i j 
+````
+
+弹性数组的规则为未指定大小的数组必须放在结构体的末尾。
+

@@ -2381,3 +2381,119 @@ a b c d e f g h i j
 
 弹性数组的规则为未指定大小的数组必须放在结构体的末尾。
 
+## typedef 命令
+
+typedef 命令是用来为某个类型起别名的，使用方法就是：
+
+````
+typedef type name
+````
+
+其中的 type 就是类型名，name 就是别名。如下 demo
+
+````c
+#include "stdio.h"
+
+int main() {
+    // 为 unsigned char 起别名 BYTE
+    typedef unsigned char BYTE;
+    // 使用 BYTE 声明变量
+    BYTE c = 'z';
+    printf("别名 BYTE 的属性 c 的值为：%c\n", c);
+
+    // 为指针起别名
+    typedef int* intptr;
+    int a = 10;
+    // 注意 x 是一个指针
+    intptr x = &a;
+    printf("指针别名 intptr 变量 x 的值为：%d\n", *x);
+
+    // 为数组起别名
+    typedef int five_ints[5];
+    five_ints  arr = {1,2,3,4,5};
+    for (int i = 0; i < (sizeof(arr) / sizeof(arr[0])); ++i) {
+        printf("输出数组第 %d 个元素值为：%d\n", i, arr[i]);
+    }
+}
+// 输出
+别名 BYTE 的属性 c 的值为：z
+指针别名 intptr 变量 x 的值为：10
+输出数组第 0 个元素值为：1
+输出数组第 1 个元素值为：2
+输出数组第 2 个元素值为：3
+输出数组第 3 个元素值为：4
+输出数组第 4 个元素值为：5
+````
+
+### typedef 的意义是什么呢？
+
+1. 更好的代码可读性，可以为字符指针起别名，方便识别变量，如下就是 String 的使用
+
+   ````c
+   typedef char* STRING;
+   STRING name;
+   ````
+
+2. 对复杂的数据结构起别名，方便引用，比如说struct、union、enum等
+
+   ````c
+   struct treenode{
+   	// ...
+   }
+   typedef struct treenode* Tree;
+   
+   typedef struct animal{
+   	char *name;
+   	int leg_count, speed;
+   } animal;
+   ````
+
+3. typedef 方便为多个同类型变量改类型
+
+   ````c
+   typedef float app_float;
+   app_float f1, f2, f3;
+   // 将类型修改为 double，只需要修改 typedef
+   typedef long double app_float;
+   ````
+
+4. 可移植性，我觉得这个非常重要，因为一个值在不同计算机上的类型，可能不一样，比如说 C 语言中的 
+
+   ````
+   int16_t 
+   int32_t 
+   int64_t 
+   
+   // 上面本质都是别名
+   typedef short                   int16_t;
+   typedef int                     int32_t;
+   typedef long long               int64_t;
+   ````
+
+   所以 typedef 有助于提⾼代码的可移植性，使其能适配不同架构的计算机。
+
+5. 简化类型声明
+
+   ````c
+   char (*(*x(void))[5])(void);
+   // 上面可以简化为下面的代码
+   typedef char (*Func)(void);
+   Func (*x(void))[5];
+   // 继续简化，读起来更轻松
+   typedef char (*Func)(void);
+   typedef Func Arr[5];
+   Arr* x(void);
+   ````
+
+   - x 是⼀个函数，返回⼀个指向 Arr 类型的指针。
+
+   - Arr 是⼀个数组，有5个成员，每个成员是 Func 类型。
+
+   - Func 是⼀个函数指针，指向⼀个⽆参数、返回字符值的函数。
+
+
+
+## UNION 结构
+
+
+
